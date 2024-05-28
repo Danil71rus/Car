@@ -80,6 +80,9 @@ void setup()
 {
   Serial.begin(115200);
   RemoteXY_Init (); 
+
+  // motorR.setResolution(10);
+  // motorL.setResolution(10);
   
   motorR.setMode(AUTO);
   motorL.setMode(AUTO);
@@ -95,51 +98,24 @@ void setup()
   // плавность скорости моторов
   motorR.setSmoothSpeed(80);
   motorL.setSmoothSpeed(80);
-   
-  
+ 
   // TODO you setup code  
 }
 
 void loop() 
 { 
   RemoteXY_Handler ();
-
   // Serial.println(RemoteXY.jost1_x);
-
   motorControl();
-
-  //  smoothControl(analogRead(0));
-  
-  
   // TODO you loop code
   // используйте структуру RemoteXY для передачи данных
-  // не используйте функцию delay(), вместо нее используйте RemoteXY_delay() 
-
-
+  // не используйте функцию delay(), вместо нее используйте RemoteXY_delay()
 }
 
 
-// void smoothControl(int speed) {
-//  static uint32_t tmr = 0;
-//  static int lastSpeed = 512; // начальное значение
-//
-//  if (millis() - tmr >= 50) {  // каждые 50 мс
-//    tmr = millis();
-//    // если разница текущей и установленной больше шага изменения
-//    if (abs(lastSpeed - speed) > step) {  
-//      lastSpeed += (lastSpeed < speed) ? step : -step;  // прибавлем или вычитаем
-//    } else {  // иначе
-//      lastSpeed = speed;  // новая скорость равна заданной
-//    }
-//    motorControl(lastSpeed, MOTOR1_IN, MOTOR1_PWM);
-//  }
-//}
-
-// принимает знач. 0-1023, пин IN и PWM
 void motorControl() {
-
   if (RemoteXY.connect_flag) {
-//    Serial.println("x: " + String(RemoteXY.jost1_x));
+    // Serial.println("x: " + String(RemoteXY.jost1_x));
     Serial.println("y: " + String(RemoteXY.jost1_y));
     
     int lx = map(RemoteXY.jost1_x, 100, -100, -255, 255);
@@ -150,9 +126,6 @@ void motorControl() {
 
     dr = constrain(dr, -255, 255);
     dl = constrain(dl, -255, 255);
-    
-    //Serial.println(dr);
-    //Serial.println(dl);
 
     // задаём целевую скорость
     motorR.smoothTick(dr);
@@ -162,24 +135,4 @@ void motorControl() {
     motorR.setSpeed(0);
     motorL.setSpeed(0);
   }
-
-
-
-  // вперёд - значение больше середины
-  // if (x > joyMiddle + JOY_DEADZONE) {
-  //   x = map(x, joyMiddle, 1023, 0, 255);
-  //   analogWrite(pinPWM, x);
-  //   digitalWrite(pinIN, 0);
-
-  //   // назад - значение меньше середины
-  // } else if (x < joyMiddle - JOY_DEADZONE) {
-  //   x = map(x, joyMiddle, 0, 255, 0);
-  //   analogWrite(pinPWM, x);
-  //   digitalWrite(pinIN, 1);
-
-  //   // стоп - мы в мёртвой зоне
-  // } else {
-  //   digitalWrite(pinIN, 0);
-  //   digitalWrite(pinPWM, 0);
-  // }
 }
