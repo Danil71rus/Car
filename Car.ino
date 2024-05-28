@@ -1,111 +1,185 @@
-/*************************************************************
+/*
+   -- Car --
+   
+   This source code of graphical user interface 
+   has been generated automatically by RemoteXY editor.
+   To compile this code using RemoteXY library 3.1.13 or later version 
+   download by link http://remotexy.com/en/library/
+   To connect using RemoteXY mobile app by link http://remotexy.com/en/download/                   
+     - for ANDROID 4.13.13 or later version;
+     - for iOS 1.10.3 or later version;
+    
+   This source code is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.    
+*/
 
-  This is a simple demo of sending and receiving some data.
-  Be sure to check out other examples!
- *************************************************************/
+//////////////////////////////////////////////
+//        RemoteXY include library          //
+//////////////////////////////////////////////
 
-/* Fill-in information from Blynk Device Info here */
-#define BLYNK_TEMPLATE_ID           "TMPL44wZlpqkR"
-#define BLYNK_TEMPLATE_NAME         "Quickstart Template"
-#define BLYNK_AUTH_TOKEN            "sj9fmdZxCzxtyosW6-dHTdQtZ3zfqX47"
+// можете включить вывод отладочной информации в Serial на 115200
+//#define REMOTEXY__DEBUGLOG    
 
-/* Comment this out to disable prints and save space */
-#define BLYNK_PRINT Serial
+// определение режима соединения и подключение библиотеки RemoteXY 
+#define REMOTEXY_MODE__WIFI_CLOUD
 
-
-#include <Servo.h>
 #include <ESP8266WiFi.h>
-#include <BlynkSimpleEsp8266.h>
 
-// Your WiFi credentials.
-// Set password to "" for open networks.
-char ssid[] = "Stepin71";
-char pass[] = "354627DON71RUS";
-
-BlynkTimer timer;
-Servo sr;
-
-unsigned long timing; // Переменная для хранения точки отсчета
+// настройки соединения 
+#define REMOTEXY_WIFI_SSID "Stepin71"
+#define REMOTEXY_WIFI_PASSWORD "354627DON71RUS"
+#define REMOTEXY_CLOUD_SERVER "cloud.remotexy.com"
+#define REMOTEXY_CLOUD_PORT 6376
+#define REMOTEXY_CLOUD_TOKEN "00d12f7909ae7183974757de7a186066"
 
 
+// мин. сигнал, при котором мотор начинает вращение
+#define MIN_DUTY 120
 
-// Движение Вперед
-BLYNK_WRITE(V0)
-{  
-  int value = param.asInt();
-  digitalWrite(D5, value);
-  Serial.println(sr.read());
+// пины драйвера
+#define MOT_RA D5
+#define MOT_RB D6
+#define MOT_LA D7
+#define MOT_LB D8
+
+
+#include <RemoteXY.h>
+#include <GyverMotor.h>
+// (тип, пин, ШИМ пин, уровень)
+GMotor motorR(DRIVER2WIRE, MOT_RA, MOT_RB, HIGH);
+GMotor motorL(DRIVER2WIRE, MOT_LA, MOT_LB, HIGH);
+
+// конфигурация интерфейса RemoteXY  
+#pragma pack(push, 1)  
+uint8_t RemoteXY_CONF[] =   // 34 bytes
+  { 255,2,0,0,0,27,0,17,0,0,0,31,2,106,200,200,84,1,1,1,
+  0,5,14,88,78,78,20,35,39,39,32,4,31,25 };
   
-  // Update state
-  // Blynk.virtualWrite(V1, value);
-}
+// структура определяет все переменные и события вашего интерфейса управления 
+struct {
 
-// Движение Назад
-BLYNK_WRITE(V1)
-{  
-  int value = param.asInt();
-  digitalWrite(D7, value);
-}
+    // input variables
+  int8_t jost1_x; // oт -100 до 100
+  int8_t jost1_y; // oт -100 до 100
 
+    // other variable
+  uint8_t connect_flag;  // =1 if wire connected, else =0
 
-// Повороты
-BLYNK_WRITE(V4)
-{  
-  if (millis() - timing > 100) { // 100мс
-    timing = millis(); 
-
-    int value = param.asInt();
-    value = map(value, 0, 100, 0, 170);
-    Serial.println(value);
-    Blynk.virtualWrite(V2, value); // передаем в V2
-    sr.write(value);  
-  }
-}
+} RemoteXY;   
+#pragma pack(pop)
+ 
+/////////////////////////////////////////////
+//           END RemoteXY include          //
+/////////////////////////////////////////////
 
 
-BLYNK_CONNECTED()
+
+void setup() 
 {
-  // Change Web Link Button message to "Congratulations!"
-  Blynk.setProperty(V3, "offImageUrl", "https://static-image.nyc3.cdn.digitaloceanspaces.com/general/fte/congratulations.png");
-  Blynk.setProperty(V3, "onImageUrl",  "https://static-image.nyc3.cdn.digitaloceanspaces.com/general/fte/congratulations_pressed.png");
-  Blynk.setProperty(V3, "url", "https://docs.blynk.io/en/getting-started/what-do-i-need-to-blynk/how-quickstart-device-was-made");
-}
-
-// This function sends Arduino's uptime every second to Virtual Pin 2.
-void myTimerEvent()
-{
-  // You can send any value at any time.
-  // Please don't send more that 10 values per second.
-  // Blynk.virtualWrite(V2, millis() / 1000);
-}
-
-void setup()
-{  
-  // Debug console
   Serial.begin(115200);
+  RemoteXY_Init (); 
+  
+  motorR.setMode(AUTO);
+  motorL.setMode(AUTO);
 
-  // 
-  pinMode(D5, OUTPUT); // D5
-  pinMode(D7, OUTPUT);
-  sr.attach(D6);  
-  sr.write(0);  
+  // НАПРАВЛЕНИЕ ГУСЕНИЦ (зависит от подключения)
+  motorR.setDirection(REVERSE);
+  motorL.setDirection(NORMAL);
 
+  // мин. сигнал вращения
+  motorR.setMinDuty(MIN_DUTY);
+  motorL.setMinDuty(MIN_DUTY);
 
-  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
-  // You can also specify server:
-  //Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass, "blynk.cloud", 80);
-  //Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass, IPAddress(192,168,1,100), 8080);
-
-  // Setup a function to be called every second
-  // timer.setInterval(1000L, myTimerEvent);
+  // плавность скорости моторов
+  motorR.setSmoothSpeed(80);
+  motorL.setSmoothSpeed(80);
+   
+  
+  // TODO you setup code  
 }
 
-void loop()
-{
-  Blynk.run();
-  timer.run();
+void loop() 
+{ 
+  RemoteXY_Handler ();
+
+  // Serial.println(RemoteXY.jost1_x);
+
+  motorControl();
+
+  //  smoothControl(analogRead(0));
   
-  // You can inject your own code or combine it with other sketches.
-  // Check other examples on how to communicate with Blynk. Remember
-  // to avoid delay() function!
+  
+  // TODO you loop code
+  // используйте структуру RemoteXY для передачи данных
+  // не используйте функцию delay(), вместо нее используйте RemoteXY_delay() 
+
+
+}
+
+
+// void smoothControl(int speed) {
+//  static uint32_t tmr = 0;
+//  static int lastSpeed = 512; // начальное значение
+//
+//  if (millis() - tmr >= 50) {  // каждые 50 мс
+//    tmr = millis();
+//    // если разница текущей и установленной больше шага изменения
+//    if (abs(lastSpeed - speed) > step) {  
+//      lastSpeed += (lastSpeed < speed) ? step : -step;  // прибавлем или вычитаем
+//    } else {  // иначе
+//      lastSpeed = speed;  // новая скорость равна заданной
+//    }
+//    motorControl(lastSpeed, MOTOR1_IN, MOTOR1_PWM);
+//  }
+//}
+
+// принимает знач. 0-1023, пин IN и PWM
+void motorControl() {
+
+  if (RemoteXY.connect_flag) {
+//    Serial.println("x: " + String(RemoteXY.jost1_x));
+    Serial.println("y: " + String(RemoteXY.jost1_y));
+    
+    int lx = map(RemoteXY.jost1_x, 100, -100, -255, 255);
+    int ly = map(RemoteXY.jost1_y, -100, 100, -255, 255);
+
+    int dr = ly + lx;
+    int dl = ly - lx;
+
+    dr = constrain(dr, -255, 255);
+    dl = constrain(dl, -255, 255);
+    
+    //Serial.println(dr);
+    //Serial.println(dl);
+
+    // задаём целевую скорость
+    motorR.smoothTick(dr);
+    motorL.smoothTick(dl);
+  } else {
+    // проблема с геймпадом - остановка
+    motorR.setSpeed(0);
+    motorL.setSpeed(0);
+  }
+
+
+
+  // вперёд - значение больше середины
+  // if (x > joyMiddle + JOY_DEADZONE) {
+  //   x = map(x, joyMiddle, 1023, 0, 255);
+  //   analogWrite(pinPWM, x);
+  //   digitalWrite(pinIN, 0);
+
+  //   // назад - значение меньше середины
+  // } else if (x < joyMiddle - JOY_DEADZONE) {
+  //   x = map(x, joyMiddle, 0, 255, 0);
+  //   analogWrite(pinPWM, x);
+  //   digitalWrite(pinIN, 1);
+
+  //   // стоп - мы в мёртвой зоне
+  // } else {
+  //   digitalWrite(pinIN, 0);
+  //   digitalWrite(pinPWM, 0);
+  // }
 }
