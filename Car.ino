@@ -88,8 +88,8 @@ void setup()
   motorL.setMode(AUTO);
 
   // НАПРАВЛЕНИЕ ГУСЕНИЦ (зависит от подключения)
-  motorR.setDirection(REVERSE);
-  motorL.setDirection(NORMAL);
+  motorR.setDirection(NORMAL);
+  motorL.setDirection(REVERSE);
 
   // мин. сигнал вращения
   motorR.setMinDuty(MIN_DUTY);
@@ -118,7 +118,7 @@ void motorControl() {
     // Serial.println("x: " + String(RemoteXY.jost1_x));
     Serial.println("y: " + String(RemoteXY.jost1_y));
     
-    int lx = map(RemoteXY.jost1_x, 100, -100, -255, 255);
+    int lx = map(RemoteXY.jost1_x, -100, 100, -255, 255);
     int ly = map(RemoteXY.jost1_y, -100, 100, -255, 255);
 
     int dr = ly + lx;
