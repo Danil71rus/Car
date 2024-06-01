@@ -61,11 +61,11 @@ uint8_t RemoteXY_CONF[] =   // 34 bytes
 struct {
 
     // input variables
-  int8_t jost1_x; // oт -100 до 100
-  int8_t jost1_y; // oт -100 до 100
+    int8_t jost1_x; // oт -100 до 100
+    int8_t jost1_y; // oт -100 до 100
 
     // other variable
-  uint8_t connect_flag;  // =1 if wire connected, else =0
+    uint8_t connect_flag;  // =1 if wire connected, else =0
 
 } RemoteXY;   
 #pragma pack(pop)
@@ -78,46 +78,46 @@ struct {
 
 void setup() 
 {
-  Serial.begin(115200);
-  RemoteXY_Init (); 
+    Serial.begin(115200);
+    RemoteXY_Init ();
 
-  // motorR.setResolution(10);
-  // motorL.setResolution(10);
-  
-  motorR.setMode(AUTO);
-  motorL.setMode(AUTO);
+//     motorR.setResolution(10);
+//     motorL.setResolution(10);
 
-  // НАПРАВЛЕНИЕ ГУСЕНИЦ (зависит от подключения)
-  motorR.setDirection(NORMAL);
-  motorL.setDirection(REVERSE);
+    motorR.setMode(AUTO);
+    motorL.setMode(AUTO);
 
-  // мин. сигнал вращения
-  motorR.setMinDuty(MIN_DUTY);
-  motorL.setMinDuty(MIN_DUTY);
+    // НАПРАВЛЕНИЕ ГУСЕНИЦ (зависит от подключения)
+    motorR.setDirection(NORMAL);
+    motorL.setDirection(REVERSE);
 
-  // плавность скорости моторов
-  motorR.setSmoothSpeed(80);
-  motorL.setSmoothSpeed(80);
- 
-  // TODO you setup code  
+    // мин. сигнал вращения
+    motorR.setMinDuty(MIN_DUTY);
+    motorL.setMinDuty(MIN_DUTY);
+
+    // плавность скорости моторов
+    motorR.setSmoothSpeed(80);
+    motorL.setSmoothSpeed(80);
+
+    // TODO you setup code
 }
 
 void loop() 
 { 
-  RemoteXY_Handler ();
-  // Serial.println(RemoteXY.jost1_x);
-  motorControl();
-  // TODO you loop code
-  // используйте структуру RemoteXY для передачи данных
-  // не используйте функцию delay(), вместо нее используйте RemoteXY_delay()
+    RemoteXY_Handler ();
+    // Serial.println(RemoteXY.jost1_x);
+    motorControl();
+    // TODO you loop code
+    // используйте структуру RemoteXY для передачи данных
+    // не используйте функцию delay(), вместо нее используйте RemoteXY_delay()
 }
 
 
 void motorControl() {
-  if (RemoteXY.connect_flag) {
+    if (RemoteXY.connect_flag) {
     // Serial.println("x: " + String(RemoteXY.jost1_x));
     Serial.println("y: " + String(RemoteXY.jost1_y));
-    
+
     int lx = map(RemoteXY.jost1_x, -100, 100, -255, 255);
     int ly = map(RemoteXY.jost1_y, -100, 100, -255, 255);
 
@@ -130,9 +130,9 @@ void motorControl() {
     // задаём целевую скорость
     motorR.smoothTick(dr);
     motorL.smoothTick(dl);
-  } else {
+    } else {
     // проблема с геймпадом - остановка
     motorR.setSpeed(0);
     motorL.setSpeed(0);
-  }
+    }
 }
