@@ -36,11 +36,11 @@
 
 
 // мин. сигнал, при котором мотор начинает вращение
-#define MIN_DUTY 120
+#define MIN_DUTY 920
 
 // пины драйвера
-#define MOT_RA D5
-#define MOT_RB D6
+#define MOT_RA D6
+#define MOT_RB D5
 #define MOT_LA D7
 #define MOT_LB D8
 
@@ -81,14 +81,14 @@ void setup()
     Serial.begin(115200);
     RemoteXY_Init ();
 
-//     motorR.setResolution(10);
-//     motorL.setResolution(10);
+    motorR.setResolution(10);
+    motorL.setResolution(10);
 
     motorR.setMode(AUTO);
     motorL.setMode(AUTO);
 
     // НАПРАВЛЕНИЕ ГУСЕНИЦ (зависит от подключения)
-    motorR.setDirection(NORMAL);
+    motorR.setDirection(REVERSE);
     motorL.setDirection(REVERSE);
 
     // мин. сигнал вращения
@@ -96,9 +96,8 @@ void setup()
     motorL.setMinDuty(MIN_DUTY);
 
     // плавность скорости моторов
-    motorR.setSmoothSpeed(80);
-    motorL.setSmoothSpeed(80);
-
+//    motorR.setSmoothSpeed(80);
+//    motorL.setSmoothSpeed(80);
     // TODO you setup code
 }
 
@@ -115,24 +114,26 @@ void loop()
 
 void motorControl() {
     if (RemoteXY.connect_flag) {
-    // Serial.println("x: " + String(RemoteXY.jost1_x));
-    Serial.println("y: " + String(RemoteXY.jost1_y));
+        // Serial.println("x: " + String(RemoteXY.jost1_x));
+//        Serial.println("y: " + String(RemoteXY.jost1_y));
 
-    int lx = map(RemoteXY.jost1_x, -100, 100, -255, 255);
-    int ly = map(RemoteXY.jost1_y, -100, 100, -255, 255);
+        int lx = map(RemoteXY.jost1_x, -100, 100, -1023, 1023);
+        int ly = map(RemoteXY.jost1_y, -100, 100, -1023, 1023);
 
-    int dr = ly + lx;
-    int dl = ly - lx;
+        int dr = ly + lx;
+        int dl = ly - lx;
 
-    dr = constrain(dr, -255, 255);
-    dl = constrain(dl, -255, 255);
+        dr = constrain(dr, -1023, 1023);
+        dl = constrain(dl, -1023, 1023);
 
-    // задаём целевую скорость
-    motorR.smoothTick(dr);
-    motorL.smoothTick(dl);
+        Serial.println("lx: " + String(lx) + ", ly: " +  String(ly) + "; dr: " + String(dr) + ", dl: " + String(dl));
+
+        // задаём целевую скорость
+        motorR.setSpeed(dr);
+        motorL.setSpeed(dl);
     } else {
-    // проблема с геймпадом - остановка
-    motorR.setSpeed(0);
-    motorL.setSpeed(0);
+        // проблема с геймпадом - остановка
+        motorR.setSpeed(0);
+        motorL.setSpeed(0);
     }
 }
