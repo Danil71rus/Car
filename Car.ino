@@ -36,7 +36,7 @@
 
 
 // мин. сигнал, при котором мотор начинает вращение
-#define MIN_DUTY 920
+#define MIN_DUTY 960
 
 // пины драйвера
 #define MOT_RA D6
@@ -115,7 +115,7 @@ void loop()
 void motorControl() {
     if (RemoteXY.connect_flag) {
         // Serial.println("x: " + String(RemoteXY.jost1_x));
-//        Serial.println("y: " + String(RemoteXY.jost1_y));
+        // Serial.println("y: " + String(RemoteXY.jost1_y));
 
         int lx = map(RemoteXY.jost1_x, -100, 100, -1023, 1023);
         int ly = map(RemoteXY.jost1_y, -100, 100, -1023, 1023);
